@@ -1,0 +1,1832 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "complete-lead-generator",
+        "formTitle": "🎯 Complete Business Lead Generator",
+        "formDescription": "Generate business leads ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "business_type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Cardiologist"
+                  },
+                  {
+                    "option": "Pulmonologist"
+                  },
+                  {
+                    "option": "Gynecologist"
+                  },
+                  {
+                    "option": "Radiology Center"
+                  },
+                  {
+                    "option": "Dentist"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Country",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Maroc"
+                  },
+                  {
+                    "option": "Senegale"
+                  },
+                  {
+                    "option": "Cote d'ivoire"
+                  },
+                  {
+                    "option": "Bourkina fasso"
+                  },
+                  {
+                    "option": "Mali"
+                  },
+                  {
+                    "option": "Mauritania"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "city",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Casablanca"
+                  },
+                  {
+                    "option": "Rabat"
+                  },
+                  {
+                    "option": "Agadir"
+                  },
+                  {
+                    "option": "Tanger"
+                  },
+                  {
+                    "option": "Fès"
+                  },
+                  {
+                    "option": "marrakech"
+                  },
+                  {
+                    "option": "Meknès"
+                  },
+                  {
+                    "option": "Oujda"
+                  },
+                  {
+                    "option": "Kenitra"
+                  },
+                  {
+                    "option": "Tétouan"
+                  },
+                  {
+                    "option": "Abidjan"
+                  },
+                  {
+                    "option": "Dakar"
+                  },
+                  {
+                    "option": "ouagadougou"
+                  },
+                  {
+                    "option": "Bamako"
+                  },
+                  {
+                    "option": " Nouakchott"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "max_leads",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "1"
+                  },
+                  {
+                    "option": "50"
+                  },
+                  {
+                    "option": "100"
+                  },
+                  {
+                    "option": "150"
+                  },
+                  {
+                    "option": "200"
+                  },
+                  {
+                    "option": "1000"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "14f58185-ec47-47d1-aa2e-bb55b29ca939",
+      "name": "📝 Lead Request Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        -4992,
+        -688
+      ],
+      "webhookId": "complete-lead-generator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "query",
+              "name": "query",
+              "value": "={{ $json.business_type }}",
+              "type": "string"
+            },
+            {
+              "id": "city",
+              "name": "city",
+              "value": "={{ $json.city }}",
+              "type": "string"
+            },
+            {
+              "id": "country",
+              "name": "country",
+              "value": "={{ $json.Country }}",
+              "type": "string"
+            },
+            {
+              "id": "max_leads",
+              "name": "max_leads",
+              "value": "={{ parseInt($json.max_leads) }}",
+              "type": "number"
+            },
+            {
+              "id": "search_location",
+              "name": "search_location",
+              "value": "={{ $json.city }},{{ $json.Country }}",
+              "type": "string"
+            },
+            {
+              "id": "all_leads",
+              "name": "all_leads",
+              "value": [],
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2920ecf6-a620-4588-9f54-acf71e7113c1",
+      "name": "Setup Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4720,
+        -672
+      ]
+    },
+    {
+      "parameters": {
+        "q": "={{ $json.search_location }} coordinates",
+        "additionalFields": {
+          "num": 1
+        },
+        "requestOptions": {}
+      },
+      "id": "7db1d2a8-cacb-4646-8383-b08fd7f8073a",
+      "name": "Find Coordinates",
+      "type": "n8n-nodes-serpapi.serpApi",
+      "typeVersion": 1,
+      "position": [
+        -4720,
+        -448
+      ],
+      "credentials": {
+        "serpApi": {
+          "id": "Ejy8ioL5f5iWQK1H",
+          "name": "SerpApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract coordinates for search location\nconst searchData = $('Setup Parameters').first().json;\nconst kg = $input.first().json.knowledge_graph || {};\nconst answer = $input.first().json.answer_box || {};\n\n// Try to get coordinates from SerpAPI response\nlet lat, lng;\n\nif (kg.coordinates) {\n  lat = kg.coordinates.latitude;\n  lng = kg.coordinates.longitude;\n} else if (answer.answer && answer.answer.includes('°')) {\n  const match = answer.answer.match(/(-?\\d+\\.\\d+)°?\\s*([NS]),?\\s*(-?\\d+\\.\\d+)°?\\s*([EW])/);\n  if (match) {\n    lat = parseFloat(match[1]);\n    lng = parseFloat(match[3]);\n    if (match[2] === 'S') lat = -lat;\n    if (match[4] === 'W') lng = -lng;\n  }\n}\n\n// Comprehensive fallback coordinates for major cities\nif (!lat || !lng) {\n  const fallbacks = {\n    'Casablanca, Morocco': [33.5731, -7.5898],\n    'Rabat, Morocco': [34.0209, -6.8416],\n    'Meknes, Morocco': [33.8675, -5.5382],\n    'Fez, Morocco': [34.0181, -5.0078],\n    'Marrakech, Morocco': [31.6295, -7.9811],\n    'Paris, France': [48.8566, 2.3522],\n    'Lyon, France': [45.7640, 4.8357],\n    'Marseille, France': [43.2965, 5.3698],\n    'Nice, France': [43.7102, 7.2620],\n    'Madrid, Spain': [40.4168, -3.7038],\n    'Barcelona, Spain': [41.3851, 2.1734],\n    'Valencia, Spain': [39.4699, -0.3763],\n    'Seville, Spain': [37.3891, -5.9845],\n    'New York, United States': [40.7128, -74.0060],\n    'Los Angeles, United States': [34.0522, -118.2437],\n    'Chicago, United States': [41.8781, -87.6298],\n    'Miami, United States': [25.7617, -80.1918],\n    'London, United Kingdom': [51.5074, -0.1278],\n    'Manchester, United Kingdom': [53.4808, -2.2426],\n    'Birmingham, United Kingdom': [52.4862, -1.8904],\n    'Liverpool, United Kingdom': [53.4084, -2.9916],\n    'Berlin, Germany': [52.5200, 13.4050],\n    'Munich, Germany': [48.1351, 11.5820],\n    'Hamburg, Germany': [53.5511, 9.9937],\n    'Frankfurt, Germany': [50.1109, 8.6821],\n    'Rome, Italy': [41.9028, 12.4964],\n    'Milan, Italy': [45.4642, 9.1900],\n    'Naples, Italy': [40.8518, 14.2681],\n    'Florence, Italy': [43.7696, 11.2558],\n    'Toronto, Canada': [43.6532, -79.3832],\n    'Vancouver, Canada': [49.2827, -123.1207],\n    'Montreal, Canada': [45.5017, -73.5673],\n    'Calgary, Canada': [51.0447, -114.0719],\n    'Dubai, UAE': [25.2048, 55.2708],\n    'Abu Dhabi, UAE': [24.4539, 54.3773],\n    'Sydney, Australia': [-33.8688, 151.2093],\n    'Melbourne, Australia': [-37.8136, 144.9631]\n  };\n  \n  const coords = fallbacks[searchData.search_location] || [40.7128, -74.0060];\n  lat = coords[0];\n  lng = coords[1];\n}\n\nreturn {\n  ...searchData,\n  coordinates_string: `@${lat},${lng},13z`\n};"
+      },
+      "id": "6725b02f-0bd5-4277-bb5c-0504bbdd5646",
+      "name": "Extract Coordinates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4496,
+        -448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "google_maps",
+        "q": "={{ $json.query }}",
+        "ll": "={{ $json.coordinates_string }}",
+        "additionalFields": {
+          "hl": "en",
+          "start": 0
+        },
+        "requestOptions": {}
+      },
+      "id": "1200d177-d40e-4da7-a08b-5858764da42a",
+      "name": "SerpAPI Google Maps Search",
+      "type": "n8n-nodes-serpapi.serpApi",
+      "typeVersion": 1,
+      "position": [
+        -4272,
+        -448
+      ],
+      "credentials": {
+        "serpApi": {
+          "id": "Ejy8ioL5f5iWQK1H",
+          "name": "SerpApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// This code processes both initial and paginated results.\n\n// Get static parameters\nconst searchDataFromSetup = $('Setup Parameters').first().json;\nconst maxDesired = searchDataFromSetup.max_leads;\nconst query = searchDataFromSetup.query;\nconst search_location = searchDataFromSetup.search_location;\nconst coordinates_string = $('Extract Coordinates').first().json.coordinates_string;\n\n// Get API results from the node's direct input\nconst mapResults = $input.first().json;\nconst results = mapResults.local_results || [];\n\n// Get previously collected leads.\n// The data comes from the node before the HTTP Request that might have lost it.\n// If that node hasn't run yet, it means this is the first execution, so we have no existing leads.\nlet existingLeads = [];\ntry {\n  existingLeads = $('Continue or Finalize?').first().json.all_leads || [];\n} catch (e) {\n  // 'Continue or Finalize?' has not run yet. This is expected on the first pass.\n  existingLeads = [];\n}\n\nconsole.log(`=== PROCESSING RESULTS ===`);\nconsole.log(`Found ${results.length} new results`);\nconsole.log(`Existing leads: ${existingLeads.length}`);\nconsole.log(`Target: ${maxDesired}`);\n\n// Process each business with complete data extraction\nconst newLeads = results.map((business, index) => {\n  const businessName = business.title || 'Unknown';\n  const website = business.website || '';\n  const phone = business.phone ? \"'\" + business.phone.replace(/[^\\d\\+\\-\\(\\)\\s]/g, '') : '';\n  const rating = business.rating || 0;\n  const reviews = business.reviews || 0;\n  \n  // Generate email from website domain\n  let email = '';\n  if (website) {\n    try {\n      const domain = website.replace(/^https?:\\/\\//, '').replace(/\\/.*$/, '').replace(/^www\\./, '');\n      email = `info@${domain}`;\n    } catch (e) {\n      email = '';\n    }\n  }\n  \n  // Extract social media links from business data\n  const links = business.links || {};\n  let facebook = '', instagram = '', linkedin = '', twitter = '';\n  \n  Object.values(links).forEach(link => {\n    const url = typeof link === 'string' ? link : (link.link || '');\n    if (url.includes('facebook.com')) facebook = url;\n    if (url.includes('instagram.com')) instagram = url;\n    if (url.includes('linkedin.com')) linkedin = url;\n    if (url.includes('twitter.com') || url.includes('x.com')) twitter = url;\n  });\n  \n  // Generate probable social media if not found but we have website\n  if (website && businessName && !facebook) {\n    const cleanName = businessName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);\n    if (cleanName.length > 3) {\n      facebook = `https://facebook.com/${cleanName}`;\n      instagram = `https://instagram.com/${cleanName}`;\n    }\n  }\n  \n  // Enhanced lead scoring algorithm (0-100 points)\n  let leadScore = 15; // Base score\n  if (website) {\n    leadScore += 35;\n    if (website.includes('https://')) leadScore += 5;\n  }\n  if (phone && phone !== \"'\") leadScore += 20;\n  if (reviews > 0) {\n    leadScore += 10;\n    if (rating >= 4.5) leadScore += 15;\n    else if (rating >= 4.0) leadScore += 10;\n    else if (rating >= 3.5) leadScore += 5;\n  }\n  if (business.hours) leadScore += 5;\n  if (business.address && business.address.length > 10) leadScore += 5;\n  if (reviews >= 100) leadScore += 5;\n  else if (reviews >= 50) leadScore += 3;\n  \n  leadScore = Math.min(leadScore, 100);\n  \n  // Quality tier based on lead score\n  let qualityTier = 'Poor';\n  if (leadScore >= 85) qualityTier = 'Excellent';\n  else if (leadScore >= 70) qualityTier = 'Good';\n  else if (leadScore >= 55) qualityTier = 'Average';\n  \n  return {\n    business_name: businessName,\n    phone: phone,\n    website: website,\n    email: email,\n    address: business.address || '',\n    rating: rating,\n    reviews: reviews,\n    hours: business.hours || '',\n    google_maps_link: business.place_id ? \n      `https://www.google.com/maps/place/?q=place_id:${business.place_id}` :\n      `https://www.google.com/maps/search/${encodeURIComponent(businessName)}`,\n    lead_score: leadScore,\n    quality_tier: qualityTier,\n    facebook: facebook,\n    instagram: instagram,\n    linkedin: linkedin,\n    twitter: twitter,\n    category: business.type || query,\n    search_query: query,\n    search_location: search_location,\n    place_id: business.place_id || '',\n    position: existingLeads.length + index + 1\n  };\n});\n\n// Remove duplicates and combine\nconst allLeadsMap = new Map();\nexistingLeads.forEach(lead => {\n  const key = `${lead.business_name}|${lead.address}`.toLowerCase();\n  allLeadsMap.set(key, lead);\n});\nnewLeads.forEach(lead => {\n  const key = `${lead.business_name}|${lead.address}`.toLowerCase();\n  if (!allLeadsMap.has(key)) {\n    allLeadsMap.set(key, lead);\n  }\n});\nconst allLeads = Array.from(allLeadsMap.values());\nconst totalCollected = allLeads.length;\n\n// Check SerpAPI pagination for next page\nconst paginationInfo = mapResults.serpapi_pagination || {};\nconst nextPageUrl = paginationInfo.next || '';\nconst hasMorePages = !!nextPageUrl;\n\nconsole.log(`Total collected: ${totalCollected}/${maxDesired}`);\nconsole.log(`Has more pages: ${hasMorePages}`);\n\n// Decision logic for pagination\nconst needMoreLeads = totalCollected < maxDesired;\nconst shouldContinue = needMoreLeads && hasMorePages && results.length > 0;\n\nconsole.log(`Should continue: ${shouldContinue}`);\n\nif (shouldContinue) {\n  // Return single object for pagination continuation\n  return {\n    // Pass along all necessary data for the loop\n    query: query,\n    city: searchDataFromSetup.city,\n    country: searchDataFromSetup.country,\n    max_leads: maxDesired,\n    search_location: search_location,\n    all_leads: allLeads, // <-- This is the crucial state being passed\n    next_page_url: nextPageUrl,\n    continue_search: true,\n    coordinates_string: coordinates_string,\n    progress: `Collected ${totalCollected}/${maxDesired} leads`\n  };\n} else {\n  // Search complete - return final results as array\n  const finalLeads = allLeads\n    .sort((a, b) => b.lead_score - a.lead_score)\n    .slice(0, maxDesired);\n  \n  console.log(`=== SEARCH COMPLETE ===`);\n  console.log(`Returning ${finalLeads.length} leads`);\n  \n  return finalLeads;\n}"
+      },
+      "id": "2956049a-5216-4f3a-a256-7a58ff860431",
+      "name": "Process and Paginate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4096,
+        -368
+      ],
+      "notes": "This node processes results from both the initial search and all subsequent paginated fetches. It consolidates leads, handles duplicates, and determines if another page is needed."
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5ea1bba2-aec8-4a99-b49f-4569729a0a98",
+                    "leftValue": "={{ $json.continue_search }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Continue "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "09beb580-fa5f-4ef5-b5ad-cca932ba41e2",
+                    "leftValue": "={{ $json.continue_search }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Finalize"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6608764d-84e6-4fb0-a6a7-6dd5d87f5795",
+      "name": "Continue or Finalize?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -3936,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.next_page_url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "13cedda9-4423-459c-9557-7a74e33023be",
+      "name": "Fetch Next Page URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3648,
+        -448
+      ],
+      "credentials": {
+        "serpApi": {
+          "id": "95azcFZTfysYNIoa",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "b34f508c-7c5f-489e-8a24-248a81b5c690",
+      "name": "Wait 2 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -3616,
+        -192
+      ],
+      "webhookId": "529a13ca-8879-406b-bcb6-38be300da2c9"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA",
+          "mode": "list",
+          "cachedResultName": "Centre de radiologie afrique",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2052874479,
+          "mode": "list",
+          "cachedResultName": "mali",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit#gid=2052874479"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business name": "={{ $json.business_name }}",
+            "City": "={{ $json.city }}",
+            "email": "={{ $json.email }}",
+            "phones": "=|{{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "adresse": "={{ $json.address }}",
+            "google maps location": "={{ $json.maps_link }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business name",
+              "displayName": "Business name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phones",
+              "displayName": "phones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adresse",
+              "displayName": "adresse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "google maps location",
+              "displayName": "google maps location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c53e2c22-87d3-4a40-8dfb-74ebdce2bb74",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2928,
+        -160
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3600,
+        -704
+      ],
+      "id": "0b4ce929-2642-4140-b38f-9f535a5e2f81",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---- Helpers ----\nfunction normalizeMoroccoPhone(p) {\n  const raw = (p || '').toString();\n  const digits = raw.replace(/[^\\d]/g, '');\n  if (!digits) return '';\n  if (digits.startsWith('0')) return '+212' + digits.slice(1);   // 05/06/07 -> +2125/6/7...\n  if (digits.startsWith('212')) return '+' + digits;\n  return '+' + digits;\n}\n\nfunction extractLatLon(url) {\n  const s = (url || '').toString();\n  let m = s.match(/@(-?\\d+(?:\\.\\d+)?),\\s*(-?\\d+(?:\\.\\d+)?)/);\n  if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };\n  m = s.match(/!3d(-?\\d+(?:\\.\\d+)?)!4d(-?\\d+(?:\\.\\d+)?)/);\n  if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };\n  m = s.match(/[?&]ll=(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)/);\n  if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };\n  m = s.match(/[?&]q=(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)/);\n  if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };\n  return { lat: null, lon: null };\n}\n\n// ---- Main ----\nconst out = [];\nconst items = $input.all();\nconsole.log('Incoming items:', items.length);\n\nfor (const item of items) {\n  const j = item.json || {};\n  const specialite = j.category || j.query || j['spécialité'] || j.specialite || '';\n  const city = j.city || j.search_location || '';\n\n  // Normaliser all_leads en tableau (gère objet unique ou absence)\n  let leads = [];\n  if (Array.isArray(j.all_leads)) {\n    leads = j.all_leads;\n  } else if (j.all_leads && typeof j.all_leads === 'object') {\n    leads = [j.all_leads];\n  }\n\n  // Cas de secours : si rien dans all_leads mais les champs existent déjà à plat\n  if (!leads.length && (j.business_name || j.email || j.phone || j.address || j.website)) {\n    leads = [{\n      business_name: j.business_name,\n      email: j.email,\n      phone: j.phone,\n      address: j.address,\n      website: j.website,\n      google_maps_link: j.google_maps_link || j.map_url\n    }];\n  }\n\n  console.log('Leads in this item:', leads.length, 'type of all_leads:', typeof j.all_leads);\n\n  for (const lead of leads) {\n    const coords = extractLatLon(lead.google_maps_link || lead.map_url);\n\n    out.push({\n      json: {\n        specialite: specialite || 'N/A',\n        city,\n        business_name: (lead.business_name || '').toString(),\n        email: (lead.email || '').toString(),\n        phone: normalizeMoroccoPhone(lead.phone || ''),\n        address: (lead.address || '').toString(),\n        website: (lead.website || '').toString(),\n        lat: coords.lat,\n        lon: coords.lon,\n        maps_link: (lead.google_maps_link || '').toString()\n      }\n    });\n  }\n}\n\nconsole.log('Output items:', out.length);\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3376,
+        -704
+      ],
+      "id": "f06b47e3-f2c4-427f-b131-2a23c62aca88",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA",
+          "mode": "list",
+          "cachedResultName": "Centre de radiologie cote ivoire",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 710526067,
+          "mode": "list",
+          "cachedResultName": "Bourkina",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit#gid=710526067"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business name": "={{ $json.business_name }}",
+            "City": "={{ $json.city }}",
+            "email": "={{ $json.email }}",
+            "phones": "=|{{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "adresse": "={{ $json.address }}",
+            "google maps location": "={{ $json.maps_link }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business name",
+              "displayName": "Business name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phones",
+              "displayName": "phones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adresse",
+              "displayName": "adresse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "google maps location",
+              "displayName": "google maps location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "27728c7b-cdc6-4415-b568-dca0f4259972",
+      "name": "Save to Google Sheets1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2928,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA",
+          "mode": "list",
+          "cachedResultName": "Centre de radiologie cote ivoire",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 151979953,
+          "mode": "list",
+          "cachedResultName": "Togo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit#gid=151979953"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business name": "={{ $json.business_name }}",
+            "City": "={{ $json.city }}",
+            "email": "={{ $json.email }}",
+            "phones": "=|{{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "adresse": "={{ $json.address }}",
+            "google maps location": "={{ $json.maps_link }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business name",
+              "displayName": "Business name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phones",
+              "displayName": "phones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adresse",
+              "displayName": "adresse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "google maps location",
+              "displayName": "google maps location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "1b8dc690-ec63-4231-b974-992044c7e0e3",
+      "name": "Save to Google Sheets2",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2928,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e52ce14e-071a-4e7d-ac7b-9c7ce4844359",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "^\\+228",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3152,
+        -16
+      ],
+      "id": "1619a4be-cd47-43b7-8624-62b0aaca81a0",
+      "name": "Filter2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA",
+          "mode": "list",
+          "cachedResultName": "Centre de radiologie afrique",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1139213648,
+          "mode": "list",
+          "cachedResultName": "senegale",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit#gid=1139213648"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business name": "={{ $json.business_name }}",
+            "email": "={{ $json.email }}",
+            "phones": "=|{{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "adresse": "={{ $json.address }}",
+            "google maps location": "={{ $json.maps_link }}",
+            "ville": "={{ $json.city }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business name",
+              "displayName": "Business name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ville",
+              "displayName": "ville",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phones",
+              "displayName": "phones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adresse",
+              "displayName": "adresse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "google maps location",
+              "displayName": "google maps location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "264eddbc-58f7-4544-93c4-2b0ea15815af",
+      "name": "Save to Google Sheets3",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2928,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA",
+          "mode": "list",
+          "cachedResultName": "Centre de radiologie afrique",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "cote_ivoire",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business name": "={{ $json.business_name }}",
+            "City": "={{ $json.city }}",
+            "email": "={{ $json.email }}",
+            "phones": "=|{{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "adresse": "={{ $json.address }}",
+            "google maps location": "={{ $json.maps_link }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business name",
+              "displayName": "Business name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phones",
+              "displayName": "phones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adresse",
+              "displayName": "adresse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "google maps location",
+              "displayName": "google maps location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "1c8ab149-9baa-4cb3-abb5-a1f1f3ccaaad",
+      "name": "Save to Google Sheets4",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2928,
+        -560
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e52ce14e-071a-4e7d-ac7b-9c7ce4844359",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "^(?:\\+212|00212|0)[\\s.\\-]?[5-7](?:[\\s.\\-]?\\d){8}$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3152,
+        -1024
+      ],
+      "id": "b364066b-5c3b-4014-a58a-0c25b32f498b",
+      "name": "Maroc"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e52ce14e-071a-4e7d-ac7b-9c7ce4844359",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "^\\+225",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3152,
+        -832
+      ],
+      "id": "db1fbcb8-513c-4468-852f-179cf7909133",
+      "name": "cote ivoire"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e52ce14e-071a-4e7d-ac7b-9c7ce4844359",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "^\\+221",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3152,
+        -624
+      ],
+      "id": "a969f2f5-095f-4a0c-971f-f5bce1d95473",
+      "name": "senegale"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA",
+          "mode": "list",
+          "cachedResultName": "Centre de radiologie afrique",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1776977223,
+          "mode": "list",
+          "cachedResultName": "Maroc",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jKrLxkPLx5tJUgvj8Waaf63sbnMxNUp9UJ8JumXo3PA/edit#gid=1776977223"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business name": "={{ $json.business_name }}",
+            "City": "={{ $json.city }}",
+            "email": "={{ $json.email }}",
+            "phones": "=|{{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "adresse": "={{ $json.address }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business name",
+              "displayName": "Business name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phones",
+              "displayName": "phones",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adresse",
+              "displayName": "adresse",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FB",
+              "displayName": "FB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Insta",
+              "displayName": "Insta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "envoyé",
+              "displayName": "envoyé",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "be726bc3-52f8-418b-87da-5a7c70c28a68",
+      "name": "maroc",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2912,
+        -800
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WMnAfwOczAktw2mD",
+          "name": "Google Sheets account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e52ce14e-071a-4e7d-ac7b-9c7ce4844359",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "^\\+223",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3168,
+        -400
+      ],
+      "id": "2a287cae-25eb-41ae-9e62-59d5a047b211",
+      "name": "Mali"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e52ce14e-071a-4e7d-ac7b-9c7ce4844359",
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "^\\+226",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -3168,
+        -208
+      ],
+      "id": "bc00aedb-103f-4546-b4e8-b8c6f5a93a17",
+      "name": "Bourkina"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3648,
+        736
+      ],
+      "id": "d2270362-20f6-4ad3-9842-323c88fc0855",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fb0dba37-baaf-4a44-96f3-5f543363ca9b",
+              "name": "business_name",
+              "value": "={{ $json.business_name }}",
+              "type": "string"
+            },
+            {
+              "id": "2313c0fc-6a46-4a20-aa85-c7bdf821461f",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "1ba97fc5-855b-4288-be09-864762ae4870",
+              "name": "phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "0e1a3a2f-1465-4b57-bf4e-b8a9f2a394c7",
+              "name": "address",
+              "value": "={{ $json.address }}",
+              "type": "string"
+            },
+            {
+              "id": "c5acbbad-ee86-48b7-88ff-b18caf1f8c0a",
+              "name": "maps_link",
+              "value": "={{ $json.maps_link }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3360,
+        752
+      ],
+      "id": "cedec28c-7017-48d5-8db4-95da3039c222",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "70796fa9-c93f-42f4-a082-db311f9ec050",
+              "leftValue": "={{ $json.email.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3680,
+        464
+      ],
+      "id": "4a1ba004-5dc7-4c57-9a5a-c78b786aae73",
+      "name": "check email1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Rédige uniquement le corps d'un e-mail professionnel destiné à l'adresse {{ $json[\"email\"] }}.\nLe sujet n'est pas requis, ne l'inclus pas.\nInclure :\n- Une salutation adaptée\n- Un corps de texte cohérent\n- Une formule de politesse\n\nNe retourne que le corps complet de l'e-mail, sans \"Subject:\", sans en-tête, sans JSON, sans clé, et sans texte supplémentaire.\nplus d'info {{ $json.business_name }},{{ $json.address }},{{ $json.maps_link }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -2976,
+        752
+      ],
+      "id": "20cf9637-87c9-4566-8bb7-9c5d10addef3",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1jJ8IvM-TLwExHl4MqoG4jUDzX-Gvw1aSns3zlUzdwmQ/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jJ8IvM-TLwExHl4MqoG4jUDzX-Gvw1aSns3zlUzdwmQ/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -4000,
+        464
+      ],
+      "id": "fef45e26-3b50-41d9-9961-42f7c9a925fa",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RVfYg8RKiSxLVjaY",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4272,
+        464
+      ],
+      "id": "2117dc2d-daf9-4724-8fa5-d654b870843c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -2944,
+        1104
+      ],
+      "id": "10f0628c-71bf-42cc-8789-900b6bce4f5e",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "1MGQd3TqxJOiHO38",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "moraddkarim@zohomail.com",
+        "toEmail": "={{ $('Edit Fields1').item.json.email }}",
+        "subject": "objet de demande ",
+        "emailFormat": "text",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -2496,
+        752
+      ],
+      "id": "e475d4c9-0af2-44bc-b82f-db141ba21a15",
+      "name": "Send email",
+      "webhookId": "099b1323-7b35-4d7d-b616-94e6e1068b95",
+      "credentials": {
+        "smtp": {
+          "id": "ZyulKBVt80echaVg",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2224,
+        752
+      ],
+      "id": "864124fa-f72b-428c-8139-f33436d0c4a2",
+      "name": "Wait1",
+      "webhookId": "7f3c4741-c51b-49d8-90a4-21b204a67896"
+    }
+  ],
+  "connections": {
+    "📝 Lead Request Form": {
+      "main": [
+        [
+          {
+            "node": "Setup Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Parameters": {
+      "main": [
+        [
+          {
+            "node": "Find Coordinates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Coordinates": {
+      "main": [
+        [
+          {
+            "node": "Extract Coordinates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Coordinates": {
+      "main": [
+        [
+          {
+            "node": "SerpAPI Google Maps Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI Google Maps Search": {
+      "main": [
+        [
+          {
+            "node": "Process and Paginate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process and Paginate Results": {
+      "main": [
+        [
+          {
+            "node": "Continue or Finalize?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue or Finalize?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Next Page URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fetch Next Page URL": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Process and Paginate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Mali",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Bourkina",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filter2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "senegale",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "cote ivoire",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Maroc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter2": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Maroc": {
+      "main": [
+        [
+          {
+            "node": "maroc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cote ivoire": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "senegale": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mali": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bourkina": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check email1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "check email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f0b5cf4cfbb3f433bd9908c8df6eaa3bfc909b8f4bbf8587426bddb7a10c5ef1"
+  }
+}
